@@ -6,7 +6,7 @@ type Result<T, E = Error> = std::result::Result<T, E>;
 
 mod error;
 
-pub trait ErrInto<T> {
+trait ErrInto<T> {
     fn err_into(self) -> Result<T>;
 }
 
