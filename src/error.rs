@@ -1,3 +1,4 @@
+/// Error for writing, reading or converting json
 #[derive(Debug)]
 pub enum Error {
     IO(std::io::Error),
@@ -5,14 +6,14 @@ pub enum Error {
 }
 
 impl From<std::io::Error> for Error {
-    fn from(value: std::io::Error) -> Self {
-        Self::IO(value)
+    fn from(io_error: std::io::Error) -> Self {
+        Self::IO(io_error)
     }
 }
 
 impl From<serde_json::Error> for Error {
-    fn from(value: serde_json::Error) -> Self {
-        Self::Json(value)
+    fn from(json_error: serde_json::Error) -> Self {
+        Self::Json(json_error)
     }
 }
 

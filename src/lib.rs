@@ -1,6 +1,8 @@
+#![doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/README.md"))]
+
 use std::io::{Read, Write};
 
-use error::Error;
+pub use error::Error;
 use serde::{de::DeserializeOwned, Serialize};
 type Result<T, E = Error> = std::result::Result<T, E>;
 
@@ -16,13 +18,46 @@ impl<T, E: Into<Error>> ErrInto<T> for Result<T, E> {
     }
 }
 
+/// Methods to serialize to or deserialize from json
 pub trait Json {
+    /// Convert a Serializable object to a Json String
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use serde::{Deserialize, Serialize};
+    /// use json::Json;
+    ///
+    /// #[derive(Deserialize, Serialize)]
+    /// struct Person {
+    ///   name: String,
+    /// }
+    ///
+    /// let person = Person { name: "Paul".to_owned() };
+    /// assert_eq!(person.to_json().unwrap(), *r#"{"name":"Paul"}"#);
+    /// ```
     fn to_json(&self) -> Result<String>;
 
     fn to_json_writer<W>(&self, w: W) -> Result<()>
     where
         W: Write;
 
+    /// Convert a String to a deserializeable object
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use serde::{Deserialize, Serialize};
+    /// use json::Json;
+    ///
+    /// #[derive(Deserialize, Serialize)]
+    /// struct Person {
+    ///     name: String
+    /// }
+    ///
+    /// let person = Person::from_json(r#"{"name":"Paul"}"#).unwrap();
+    /// assert_eq!(person.name, *"Paul");
+    /// ```
     fn from_json<S>(s: S) -> Result<Self>
     where
         Self: Sized,
@@ -71,7 +106,7 @@ mod tests {
     use serde::{Deserialize, Serialize};
     use std::fs::OpenOptions;
 
-    #[derive(Deserialize, Serialize)]
+    #[derive(Debug, Deserialize, Serialize)]
     struct TestPerson {
         name: String,
         age: u32,
