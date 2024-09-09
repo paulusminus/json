@@ -1,15 +1,17 @@
 use std::io::{Read, Write};
 
+use error::Error;
 use serde::{de::DeserializeOwned, Serialize};
-type Error = Box<dyn std::error::Error>;
 type Result<T, E = Error> = std::result::Result<T, E>;
 
+mod error;
+
 pub trait ErrInto<T> {
-    fn err_into(self) -> Result<T, Error>;
+    fn err_into(self) -> Result<T>;
 }
 
 impl<T, E: Into<Error>> ErrInto<T> for Result<T, E> {
-    fn err_into(self) -> Result<T, Error> {
+    fn err_into(self) -> Result<T> {
         self.map_err(Into::into)
     }
 }
@@ -65,10 +67,9 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::fs::OpenOptions;
-
-    use super::Json;
+    use super::{ErrInto, Json};
     use serde::{Deserialize, Serialize};
+    use std::fs::OpenOptions;
 
     #[derive(Deserialize, Serialize)]
     struct TestPerson {
@@ -100,7 +101,7 @@ mod tests {
         let person = OpenOptions::new()
             .read(true)
             .open(TEST_FILE)
-            .map_err(Into::into)
+            .err_into()
             .and_then(TestPerson::from_json_reader)
             .unwrap();
         assert_eq!(person.name, *"Paul Min");
