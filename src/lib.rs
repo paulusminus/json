@@ -40,7 +40,7 @@ pub trait Json {
     fn to_json(&self) -> Result<String>;
 
     /// Write a serializable object
-    /// 
+    ///
     /// ```
     /// use std::io::{Write, stdout};
     /// use serde::{Deserialize, Serialize};
