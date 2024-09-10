@@ -34,11 +34,30 @@ pub trait Json {
     /// }
     ///
     /// let person = Person { name: "Paul".to_owned() };
-    /// assert_eq!(person.to_json().unwrap(), *r#"{"name":"Paul"}"#);
+    /// let s = person.to_json().unwrap();
+    /// assert_eq!(&s, r#"{"name":"Paul"}"#);
     /// ```
     fn to_json(&self) -> Result<String>;
 
-    fn to_json_writer<W>(&self, w: W) -> Result<()>
+    /// Write a serializable object
+    /// 
+    /// ```
+    /// use std::io::{Write, stdout};
+    /// use serde::{Deserialize, Serialize};
+    /// use json::Json;
+    ///
+    /// #[derive(Deserialize, Serialize)]
+    /// struct Person {
+    ///     name: String
+    /// }
+    ///
+    /// let person = Person { name: "Paul".to_owned() };
+    /// let mut v = Vec::<u8>::new();
+    /// person.to_json_writer(&mut v).unwrap();
+    /// v.flush().unwrap();
+    /// assert_eq!(std::str::from_utf8(v.as_slice()).unwrap(), r#"{"name":"Paul"}"#);
+    /// ```
+    fn to_json_writer<W>(&self, w: &mut W) -> Result<()>
     where
         W: Write;
 
@@ -55,13 +74,32 @@ pub trait Json {
     ///     name: String
     /// }
     ///
-    /// let person = Person::from_json(r#"{"name":"Paul"}"#).unwrap();
+    /// let JSON_STRING: &str = r#"{"name":"Paul"}"#;
+    /// let person = Person::from_json(JSON_STRING).unwrap();
     /// assert_eq!(person.name, *"Paul");
     /// ```
     fn from_json<S>(s: S) -> Result<Self>
     where
         Self: Sized,
         S: AsRef<str>;
+
+    /// Read a deserializeable object
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use serde::{Deserialize, Serialize};
+    /// use json::Json;
+    ///
+    /// #[derive(Deserialize, Serialize)]
+    /// struct Person {
+    ///     name: String
+    /// }
+    ///
+    /// let JSON_STRING: &str = r#"{"name":"Paul"}"#;
+    /// let person = Person::from_json_reader(JSON_STRING.as_bytes()).unwrap();
+    /// assert_eq!(person.name, *"Paul");
+    /// ```
     fn from_json_reader<R>(r: R) -> Result<Self>
     where
         Self: Sized,
@@ -76,7 +114,7 @@ where
         serde_json::to_string(self).err_into()
     }
 
-    fn to_json_writer<W>(&self, w: W) -> Result<()>
+    fn to_json_writer<W>(&self, w: &mut W) -> Result<()>
     where
         W: Write,
     {
@@ -97,49 +135,5 @@ where
         R: Read,
     {
         serde_json::from_reader::<_, T>(r).err_into()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::{ErrInto, Json};
-    use serde::{Deserialize, Serialize};
-    use std::fs::OpenOptions;
-
-    #[derive(Debug, Deserialize, Serialize)]
-    struct TestPerson {
-        name: String,
-        age: u32,
-    }
-
-    #[test]
-    fn test_person_to_string() {
-        let person = TestPerson {
-            name: "Paul".to_owned(),
-            age: 63,
-        };
-        let s = person.to_json().unwrap();
-        assert_eq!(s, *"{\"name\":\"Paul\",\"age\":63}");
-    }
-
-    #[test]
-    fn from_json() {
-        const TEST_STRING: &str = "{\"name\":\"Paul\",\"age\":63}";
-        let person = TestPerson::from_json(TEST_STRING).unwrap();
-        assert_eq!(person.name, "Paul");
-        assert_eq!(person.age, 63);
-    }
-
-    #[test]
-    fn from_reader() {
-        const TEST_FILE: &str = "test.json";
-        let person = OpenOptions::new()
-            .read(true)
-            .open(TEST_FILE)
-            .err_into()
-            .and_then(TestPerson::from_json_reader)
-            .unwrap();
-        assert_eq!(person.name, *"Paul Min");
-        assert_eq!(person.age, 74);
     }
 }
