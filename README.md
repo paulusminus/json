@@ -1,13 +1,12 @@
 ![`build-badge`]
 [![`mit-badge`]](https://opensource.org/licenses/MIT)
 
-# json
-
-Library crate that publishes a Json trait that can be used to serialize to or deserialize from json.
+Library crate that publishes a Json trait that can be used to
+serialize to or deserialize from json.
 
 ## Example
 
-```
+```rust
 use serde::{Deserialize, Serialize};
 use json::Json;
  
