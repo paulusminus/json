@@ -2,24 +2,15 @@
 
 use std::io::{Read, Write};
 
+use error::ErrInto;
 pub use error::Error;
 use serde::{de::DeserializeOwned, Serialize};
 type Result<T, E = Error> = std::result::Result<T, E>;
 
 mod error;
 
-trait ErrInto<T> {
-    fn err_into(self) -> Result<T>;
-}
-
-impl<T, E: Into<Error>> ErrInto<T> for Result<T, E> {
-    fn err_into(self) -> Result<T> {
-        self.map_err(Into::into)
-    }
-}
-
 /// Methods to serialize to or deserialize from json
-pub trait Json {
+pub trait Json: DeserializeOwned + Serialize {
     /// Convert a Serializable object to a Json String
     ///
     /// Example
@@ -37,7 +28,9 @@ pub trait Json {
     /// let s = person.to_json().unwrap();
     /// assert_eq!(&s, r#"{"name":"Paul"}"#);
     /// ```
-    fn to_json(&self) -> Result<String>;
+    fn to_json(&self) -> Result<String> {
+        serde_json::to_string(self).err_into()
+    }
 
     /// Write a serializable object
     ///
@@ -54,12 +47,15 @@ pub trait Json {
     /// let person = Person { name: "Paul".to_owned() };
     /// let mut v = Vec::<u8>::new();
     /// person.to_json_writer(&mut v).unwrap();
-    /// v.flush().unwrap();
+    ///     v.flush().unwrap();
     /// assert_eq!(std::str::from_utf8(v.as_slice()).unwrap(), r#"{"name":"Paul"}"#);
     /// ```
     fn to_json_writer<W>(&self, w: &mut W) -> Result<()>
     where
-        W: Write;
+        W: Write,
+    {
+        serde_json::to_writer(w, self).err_into()
+    }
 
     /// Convert a String to a deserializeable object
     ///
@@ -81,7 +77,10 @@ pub trait Json {
     fn from_json<S>(s: S) -> Result<Self>
     where
         Self: Sized,
-        S: AsRef<str>;
+        S: AsRef<str>,
+    {
+        serde_json::from_str(s.as_ref()).err_into()
+    }
 
     /// Read a deserializeable object
     ///
@@ -103,37 +102,10 @@ pub trait Json {
     fn from_json_reader<R>(r: R) -> Result<Self>
     where
         Self: Sized,
-        R: Read;
-}
-
-impl<T> Json for T
-where
-    T: Serialize + DeserializeOwned,
-{
-    fn to_json(&self) -> Result<String> {
-        serde_json::to_string(self).err_into()
-    }
-
-    fn to_json_writer<W>(&self, w: &mut W) -> Result<()>
-    where
-        W: Write,
-    {
-        serde_json::to_writer(w, self).err_into()
-    }
-
-    fn from_json<S>(s: S) -> Result<Self>
-    where
-        Self: Sized,
-        S: AsRef<str>,
-    {
-        serde_json::from_str::<T>(s.as_ref()).err_into()
-    }
-
-    fn from_json_reader<R>(r: R) -> Result<Self>
-    where
-        Self: Sized,
         R: Read,
     {
-        serde_json::from_reader::<_, T>(r).err_into()
+        serde_json::from_reader(r).err_into()
     }
 }
+
+impl<T> Json for T where T: DeserializeOwned + Serialize {}

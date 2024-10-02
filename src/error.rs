@@ -28,3 +28,13 @@ impl std::fmt::Display for Error {
 }
 
 impl std::error::Error for Error {}
+
+pub(crate) trait ErrInto<T> {
+    fn err_into(self) -> crate::Result<T>;
+}
+
+impl<T, E: Into<Error>> ErrInto<T> for Result<T, E> {
+    fn err_into(self) -> crate::Result<T> {
+        self.map_err(Into::into)
+    }
+}

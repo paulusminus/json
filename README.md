@@ -1,7 +1,7 @@
 ![`build-badge`]
 [![`mit-badge`]](https://opensource.org/licenses/MIT)
 
-Library crate that publishes a Json trait that can be used to
+Library crate that publishes a Json trait that is used to
 serialize to or deserialize from json.
 
 ## Example
