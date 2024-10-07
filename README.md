@@ -6,7 +6,7 @@ serialize to or deserialize from json.
 
 ## Example
 
-```rust
+```no_run
 use serde::{Deserialize, Serialize};
 use json::Json;
  
