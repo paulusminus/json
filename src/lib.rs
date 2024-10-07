@@ -2,12 +2,8 @@
 
 use std::io::{Read, Write};
 
-use error::ErrInto;
-pub use error::Error;
 use serde::{de::DeserializeOwned, Serialize};
-type Result<T, E = Error> = std::result::Result<T, E>;
-
-mod error;
+type Result<T, E = std::io::Error> = std::result::Result<T, E>;
 
 /// Methods to serialize to or deserialize from json
 pub trait Json: DeserializeOwned + Serialize {
@@ -29,7 +25,7 @@ pub trait Json: DeserializeOwned + Serialize {
     /// assert_eq!(&s, r#"{"name":"Paul"}"#);
     /// ```
     fn to_json(&self) -> Result<String> {
-        serde_json::to_string(self).err_into()
+        serde_json::to_string(self).map_err(Into::into)
     }
 
     /// Write a serializable object
@@ -54,7 +50,7 @@ pub trait Json: DeserializeOwned + Serialize {
     where
         W: Write,
     {
-        serde_json::to_writer(w, self).err_into()
+        serde_json::to_writer(w, self).map_err(Into::into)
     }
 
     /// Convert a String to a deserializeable object
@@ -79,7 +75,7 @@ pub trait Json: DeserializeOwned + Serialize {
         Self: Sized,
         S: AsRef<str>,
     {
-        serde_json::from_str(s.as_ref()).err_into()
+        serde_json::from_str(s.as_ref()).map_err(Into::into)
     }
 
     /// Read a deserializeable object
@@ -104,7 +100,7 @@ pub trait Json: DeserializeOwned + Serialize {
         Self: Sized,
         R: Read,
     {
-        serde_json::from_reader(r).err_into()
+        serde_json::from_reader(r).map_err(Into::into)
     }
 }
 
