@@ -28,6 +28,27 @@ pub trait Json: DeserializeOwned + Serialize {
         serde_json::to_string(self).map_err(Into::into)
     }
 
+    /// Convert a Serializable object to a pretty formatted Json String
+    ///
+    /// Example
+    ///
+    /// ```
+    /// use serde::{Deserialize, Serialize};
+    /// use json::Json;
+    ///
+    /// #[derive(Deserialize, Serialize)]
+    /// struct Person {
+    ///   name: String,
+    /// }
+    ///
+    /// let person = Person { name: "Paul".to_owned() };
+    /// let s = person.to_json_pretty().unwrap();
+    /// assert_eq!(&s, "{\n  \"name\": \"Paul\"\n}");
+    /// ```
+    fn to_json_pretty(&self) -> Result<String> {
+        serde_json::to_string_pretty(self).map_err(Into::into)
+    }
+
     /// Write a serializable object
     ///
     /// ```
