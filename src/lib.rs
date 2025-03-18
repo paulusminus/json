@@ -2,7 +2,7 @@
 
 use std::io::{Read, Write};
 
-use serde::{de::DeserializeOwned, Serialize};
+use serde::{Serialize, de::DeserializeOwned};
 type Result<T, E = std::io::Error> = std::result::Result<T, E>;
 
 /// Methods to serialize to or deserialize from json
