@@ -15,4 +15,4 @@ jobs:
         with:
           toolchain: stable
           components: clippy,rustfmt
-      - uses: paulusminus/rust-check@v6
+      - uses: paulusminus/rust-check@v7
